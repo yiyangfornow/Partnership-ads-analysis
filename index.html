@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partnership Ads Performance Matrix</title>
+    <!-- Import Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        body {
+            font-family: "Noto Sans TC", sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            background: white;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #e9ecef;
+            border-color: #ccc;
+        }
+        button.active {
+            background: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+        label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+        p.note {
+            text-align: center;
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        #myDiv {
+            width: 100%;
+            height: 800px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Partnership Ads 素材表現矩陣 (Spending vs ROAS)</h2>
+    
+    <div class="controls">
+        <button onclick="setLinearScale()" id="btnLinear" class="active">聚焦核心區 (Linear)</button>
+        <button onclick="setLogScale()" id="btnLog">全覽分佈 (Log Scale)</button>
+        <label>
+            <input type="checkbox" id="toggleLabels" checked onchange="toggleLabels()"> 
+            顯示文字標籤
+        </label>
+    </div>
+
+    <p class="note" id="descText">核心區模式：已隱藏極端高花費/高ROAS項目，以消除版面空白並放大密集區。</p>
+    <div id="myDiv"></div>
+</div>
+
+<script>
+    // Raw Data
+    const rawData = [
+        { dir: "Brand service", usecase: "Unboxing", spending: 171.96, roas: 0.00 },
+        { dir: "Brand service", usecase: "Logistics", spending: 2274.93, roas: 2.00 },
+        { dir: "Problem Solving", usecase: "Pets", spending: 235.68, roas: 0.00 },
+        { dir: "Problem Solving", usecase: "Storage", spending: 337.44, roas: 1.18 },
+        { dir: "Problem Solving", usecase: "Electronic fee", spending: 110.72, roas: 0.00 },
+        { dir: "Problem Solving", usecase: "Respiratory", spending: 16.39, roas: 203.49 },
+        { dir: "Problem Solving", usecase: "Skincare", spending: 101.83, roas: 0.00 },
+        { dir: "Problem Solving", usecase: "Sleeping Quality", spending: 222.51, roas: 1.22 },
+        { dir: "Problem Solving", usecase: "Weight", spending: 1041.72, roas: 1.97 },
+        { dir: "Problem Solving", usecase: "Lower back pain", spending: 786.86, roas: 0.77 },
+        { dir: "Problem Solving", usecase: "Smell", spending: 669.46, roas: 2.78 },
+        { dir: "Problem Solving", usecase: "Sports Recovor", spending: 143.25, roas: 12.87 },
+        { dir: "Problem Solving", usecase: "Noise", spending: 180.63, roas: 0.00 },
+        { dir: "New purchase", usecase: "How to choose", spending: 906.55, roas: 5.40 },
+        { dir: "New purchase", usecase: "Valentines", spending: 8.72, roas: 0.00 },
+        { dir: "New purchase", usecase: "Parent Gifting", spending: 2750.20, roas: 4.94 },
+        { dir: "New purchase", usecase: "Kids", spending: 1683.77, roas: 2.00 },
+        { dir: "New purchase", usecase: "CNY Gifting", spending: 959.23, roas: 5.63 },
+        { dir: "Discount", usecase: "How to choose", spending: 2006.89, roas: 5.51 },
+        { dir: "Discount", usecase: "Discount", spending: 31966.07, roas: 3.43 },
+        { dir: "Replacement", usecase: "Pregnant", spending: 529.83, roas: 5.44 },
+        { dir: "Replacement", usecase: "Marriage", spending: 589.73, roas: 0.52 },
+        { dir: "Replacement", usecase: "Old mattress replacement", spending: 1392.70, roas: 4.91 },
+        { dir: "Replacement", usecase: "New birth", spending: 66.15, roas: 0.00 },
+        { dir: "Replacement", usecase: "Parent Gifting", spending: 1648.65, roas: 1.83 },
+        { dir: "Replacement", usecase: "Kids", spending: 277.40, roas: 1.01 },
+        { dir: "Replacement", usecase: "Rental & Dorms", spending: 7518.38, roas: 1.34 }
+    ];
+
+    // Manual Text Position Map
+    const textPosMap = {
+        "Valentines": "bottom left",
+        "New birth": "bottom center",
+        "Skincare": "top center",
+        "Electronic fee": "top left",
+        "Unboxing": "top right",
+        "Noise": "middle right",
+        "Pets": "bottom right",
+        "Sleeping quality": "top center",
+        "Storage": "bottom center",
+        "Marriage": "bottom center",
+        "Pregnant": "top left",
+        "Smell": "bottom center",
+        "Lower back pain": "bottom center",
+        "Sports Revor": "top center",
+        "How to choose": "top center",
+        "CNY Gifting": "top right",
+        "Weight": "bottom left",
+        "Old mattress replacement": "top center",
+        "Logistics": "top center",
+        "Parent Gifting": "top center",
+        "Rental & Dorms": "bottom center",
+        "Discount": "top center"
+    };
+
+    function getSmartPosition(d) {
+        if (d.usecase === "Kids") {
+             if (d.spending > 1000) return "top center"; 
+             return "bottom left"; 
+        }
+        if (d.usecase === "Parent Gifting") {
+             if (d.spending > 2000) return "top center"; 
+             return "bottom right"; 
+        }
+        if (d.usecase === "How to choose") {
+            if (d.dir === "New purchase") return "top left"; 
+            return "bottom right"; 
+        }
+        return textPosMap[d.usecase] || "top center";
+    }
+
+    // Calculations
+    const roasOutlierThreshold = 100; 
+    const spendingOutlierThreshold = 10000; 
+
+    const normalSpendingData = rawData.filter(d => d.spending < spendingOutlierThreshold);
+    const totalSpending = normalSpendingData.reduce((sum, item) => sum + item.spending, 0);
+    const avgSpending = totalSpending / normalSpendingData.length;
+
+    const normalRoasData = rawData.filter(d => d.roas < roasOutlierThreshold);
+    const totalROAS = normalRoasData.reduce((sum, item) => sum + item.roas, 0);
+    const avgROAS = totalROAS / normalRoasData.length;
+
+    const directions = [...new Set(rawData.map(item => item.dir))];
+    
+    // Create Traces
+    const traces = directions.map(dir => {
+        const filteredData = rawData.filter(d => d.dir === dir);
+        return {
+            x: filteredData.map(d => d.spending),
+            y: filteredData.map(d => d.roas),
+            mode: 'markers+text',
+            type: 'scatter',
+            name: dir,
+            text: filteredData.map(d => d.usecase),
+            textposition: filteredData.map(d => getSmartPosition(d)),
+            textfont: {
+                size: 13, 
+                family: 'Arial, sans-serif',
+                weight: 600
+            },
+            marker: { 
+                size: 16, 
+                opacity: 0.85, 
+                line: { width: 1.5, color: 'white' } 
+            },
+            hovertemplate: 
+                `<b>Direction:</b> ${dir}<br>` +
+                `<b>Use Case:</b> %{text}<br>` +
+                `<b>Spending:</b> $%{x:,.2f}<br>` +
+                `<b>ROAS:</b> %{y:.2f}<extra></extra>`
+        };
+    });
+
+    const layout = {
+        font: { size: 14 }, 
+        hovermode: 'closest',
+        xaxis: {
+            title: { text: 'Spending (€)', font: { size: 18, weight: 'bold' } },
+            zeroline: false,
+            gridcolor: '#e6e6e6',
+            // Default range focuses on the "core" to avoid whitespace
+            range: [-50, 3000], 
+            tickfont: { size: 14 } 
+        },
+        yaxis: {
+            title: { text: 'ROAS', font: { size: 18, weight: 'bold' } },
+            zeroline: false,
+            gridcolor: '#e6e6e6',
+            // Default range focuses on ROAS < 6.5 to hide the outlier at 12.87
+            range: [-0.5, 6.5],
+            tickfont: { size: 14 } 
+        },
+        shapes: [
+            // Spending Avg Line
+            {
+                type: 'line',
+                x0: avgSpending, y0: -10, x1: avgSpending, y1: 220,
+                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
+            },
+            // ROAS Avg Line
+            {
+                type: 'line',
+                x0: 0, y0: avgROAS, x1: 40000, y1: avgROAS,
+                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
+            }
+        ],
+        annotations: [
+            { x: 0.95, y: 0.95, xref: 'paper', yref: 'paper', text: '<b>High Spend<br>High ROAS</b>', showarrow: false, font: { color: 'green', size: 14 }, xanchor: 'right' },
+            { x: 0.05, y: 0.95, xref: 'paper', yref: 'paper', text: '<b>Low Spend<br>High ROAS</b>', showarrow: false, font: { color: 'orange', size: 14 }, xanchor: 'left' },
+            { x: 0.95, y: 0.05, xref: 'paper', yref: 'paper', text: '<b>High Spend<br>Low ROAS</b>', showarrow: false, font: { color: 'blue', size: 14 }, xanchor: 'right' },
+            
+            { x: avgSpending, y: 0.02, xref: 'x', yref: 'paper', text: `Avg Spend: $${avgSpending.toFixed(0)}`, showarrow: false, font: { size: 12, color: 'gray', weight: 'bold' }, yanchor: 'bottom' },
+            { x: 0.98, y: avgROAS + 0.1, xref: 'paper', yref: 'y', text: `Avg ROAS: ${avgROAS.toFixed(2)}`, showarrow: false, font: { size: 12, color: 'gray', weight: 'bold' }, xanchor: 'right' }
+        ],
+        legend: { 
+            orientation: 'h', 
+            y: -0.1,
+            font: { size: 14 } 
+        },
+        margin: { t: 60, l: 70, r: 50, b: 100 }
+    };
+
+    Plotly.newPlot('myDiv', traces, layout);
+
+    function setLinearScale() {
+        const update = {
+            'xaxis.type': 'linear',
+            'xaxis.range': [-50, 3000], // Tight zoom on core data
+            'yaxis.range': [-0.5, 6.5],  // Hide vertical outlier
+            'xaxis.title.text': 'Spending ($) - Linear'
+        };
+        
+        // Update Avg Lines shapes for Linear
+        const shapes = [
+             {
+                type: 'line',
+                x0: avgSpending, y0: -10, x1: avgSpending, y1: 220,
+                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
+            },
+            {
+                type: 'line',
+                x0: -1000, y0: avgROAS, x1: 40000, y1: avgROAS,
+                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
+            }
+        ];
+        update.shapes = shapes;
+
+        Plotly.relayout('myDiv', update);
+        
+        document.getElementById('descText').innerText = "核心區模式：已隱藏極端高花費/高ROAS項目，以消除版面空白並放大密集區。";
+        updateButtons('btnLinear');
+    }
+
+    function setLogScale() {
+        const update = {
+            'xaxis.type': 'log',
+            'xaxis.range': [0.5, 4.6], // Log10 range: 10^0.5 (~3) to 10^4.6 (~40k)
+            'yaxis.range': [-1, 15],   // Show full ROAS range
+            'xaxis.title.text': 'Spending ($) - Log Scale'
+        };
+        
+        // Update Avg Lines shapes for Log
+        const shapes = [
+             {
+                type: 'line',
+                x0: Math.log10(avgSpending), y0: -10, x1: Math.log10(avgSpending), y1: 220,
+                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' },
+                xref: 'x' // Ensure it maps correctly in Plotly logic (Plotly handles log lines automatically usually, but explicitly setting range helps)
+            },
+            {
+                type: 'line',
+                x0: 0, y0: avgROAS, x1: 5, y1: avgROAS, // x in log domain
+                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' },
+                xref: 'x' 
+            }
+        ];
+        
+        // Plotly handles shapes on log axes a bit differently, simple lines often easiest redrawn
+        // For simplicity, we keep the original values, Plotly usually adapts if type changes.
+        // But to be safe, we re-apply shapes using data coordinates
+         const safeShapes = [
+             {
+                type: 'line',
+                x0: avgSpending, y0: -10, x1: avgSpending, y1: 220,
+                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
+            },
+            {
+                type: 'line',
+                x0: 0, y0: avgROAS, x1: 40000, y1: avgROAS, // Cover full range
+                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
+            }
+        ];
+        update.shapes = safeShapes;
+
+        Plotly.relayout('myDiv', update);
+        
+        document.getElementById('descText').innerText = "全覽模式 (Log Scale)：使用對數座標呈現所有數據點，包含極端值 (如 Discount $31k)，讓所有點都能清楚分開。";
+        updateButtons('btnLog');
+    }
+
+    function toggleLabels() {
+        const isChecked = document.getElementById('toggleLabels').checked;
+        const mode = isChecked ? 'markers+text' : 'markers';
+        Plotly.restyle('myDiv', { mode: mode });
+    }
+
+    function updateButtons(activeId) {
+        document.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+        const btn = document.getElementById(activeId);
+        if(btn) btn.classList.add('active');
+    }
+</script>
+
+</body>
+</html>
