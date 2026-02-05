@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +8,7 @@
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         body {
-            font-family: "Noto Sans TC", sans-serif;
+            font-family: "Arial", sans-serif;
             margin: 0;
             padding: 20px;
             background-color: #f5f5f5;
@@ -17,157 +17,191 @@
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         h2 {
             text-align: center;
-            color: #333;
+            color: #2c3e50;
             margin-bottom: 5px;
             font-size: 28px;
-            font-weight: bold;
+            font-weight: 800;
         }
         .subtitle {
             text-align: center;
-            color: #666;
+            color: #7f8c8d;
             font-size: 16px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             font-weight: 500;
         }
         .controls {
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
-            background: #f8f9fa;
-            padding: 10px;
+            background: #ecf0f1;
+            padding: 15px;
             border-radius: 8px;
+            border: 1px solid #bdc3c7;
+        }
+        .btn-group {
+            display: flex;
+            gap: 8px;
         }
         button {
-            padding: 10px 20px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 10px 18px;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
             cursor: pointer;
             background: white;
-            font-size: 16px;
-            font-weight: 500;
+            font-size: 15px;
+            font-weight: 600;
+            color: #34495e;
             transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         button:hover {
-            background: #e9ecef;
-            border-color: #ccc;
+            background: #eef2f3;
+            border-color: #95a5a6;
+            transform: translateY(-1px);
         }
         button.active {
-            background: #007bff;
+            background: #2980b9;
             color: white;
-            border-color: #0056b3;
+            border-color: #2471a3;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
         label {
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 16px;
+            gap: 8px;
+            font-size: 15px;
             cursor: pointer;
             user-select: none;
+            margin-left: 15px;
+            font-weight: 600;
+            color: #34495e;
         }
         p.note {
             text-align: center;
-            color: #666;
-            font-size: 1.1em;
-            margin-bottom: 20px;
+            color: #555;
+            font-size: 15px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background-color: #eaf2f8;
+            border-radius: 6px;
+            border-left: 5px solid #3498db;
+            line-height: 1.5;
         }
         #myDiv {
             width: 100%;
-            height: 800px;
+            height: 850px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Partnership ads Use Cases Performance Matrix</h2>
+    <h2>Partnership Ads Use Cases Performance Matrix</h2>
     <div class="subtitle">Time frame: 2025/12/1 - 2026/01/31</div>
     
     <div class="controls">
-        <button onclick="setLinearScale()" id="btnLinear" class="active">Dense Data Zone</button>
-        <button onclick="setLogScale()" id="btnLog">Overall performance</button>
+        <button onclick="setView('overall')" id="btnOverall" class="active">Overall Performance</button>
+        
+        <div class="btn-group">
+            <button onclick="setView('q1')" id="btnQ1">Q1: High/High</button>
+            <button onclick="setView('q2')" id="btnQ2">Q2: Low/High</button>
+            <button onclick="setView('q3')" id="btnQ3">Q3: Low/Low</button>
+            <button onclick="setView('q4')" id="btnQ4">Q4: High/Low</button>
+        </div>
+
         <label>
             <input type="checkbox" id="toggleLabels" checked onchange="toggleLabels()"> 
             Show Labels
         </label>
     </div>
 
-    <p class="note" id="descText">Dense Data Zone: Zoomed in on the high-density area with lower spend and ROAS.</p>
+    <p class="note" id="descText">
+        <b>Chart Guide:</b><br>
+        ● X-Axis: Spending (€) [Log Scale] | Y-Axis: ROAS<br>
+        ● <b>Overall View</b>: Using Logarithmic scale for Spending to separate crowded data points.
+    </p>
+
     <div id="myDiv"></div>
 </div>
 
 <script>
-    // Raw Data (Updated: Sports recover)
+    // Raw Data
     const rawData = [
-        { dir: "Brand service", usecase: "Unboxing", spending: 171.96, roas: 0.00 },
-        { dir: "Brand service", usecase: "Logistics", spending: 2274.93, roas: 2.00 },
-        { dir: "Problem Solving", usecase: "Pets", spending: 235.68, roas: 0.00 },
-        { dir: "Problem Solving", usecase: "Storage", spending: 337.44, roas: 1.18 },
-        { dir: "Problem Solving", usecase: "Elecronic fee", spending: 110.72, roas: 0.00 },
-        { dir: "Problem Solving", usecase: "respiratory", spending: 16.39, roas: 203.49 },
-        { dir: "Problem Solving", usecase: "Skincare", spending: 101.83, roas: 0.00 },
-        { dir: "Problem Solving", usecase: "Sleeping quality", spending: 222.51, roas: 1.22 },
-        { dir: "Problem Solving", usecase: "Weight", spending: 1041.72, roas: 1.97 },
-        { dir: "Problem Solving", usecase: "Lower back pain", spending: 786.86, roas: 0.77 },
-        { dir: "Problem Solving", usecase: "Smell", spending: 669.46, roas: 2.78 },
-        { dir: "Problem Solving", usecase: "Sports recover", spending: 143.25, roas: 12.87 }, // Corrected spelling
-        { dir: "Problem Solving", usecase: "Noise", spending: 180.63, roas: 0.00 },
-        { dir: "New purchase", usecase: "How to choose", spending: 906.55, roas: 5.40 },
-        { dir: "New purchase", usecase: "Valentines", spending: 8.72, roas: 0.00 },
-        { dir: "New purchase", usecase: "Parent Gifting", spending: 2750.20, roas: 4.94 },
-        { dir: "New purchase", usecase: "Kids", spending: 1683.77, roas: 2.00 },
-        { dir: "New purchase", usecase: "CNY Gifting", spending: 959.23, roas: 5.63 },
-        { dir: "Discount", usecase: "How to choose", spending: 2006.89, roas: 5.51 },
-        { dir: "Discount", usecase: "Discount", spending: 31966.07, roas: 3.43 },
-        { dir: "Replacement", usecase: "Pregnant", spending: 529.83, roas: 5.44 },
-        { dir: "Replacement", usecase: "Marriage", spending: 589.73, roas: 0.52 },
-        { dir: "Replacement", usecase: "Old mattress", spending: 1392.70, roas: 4.91 },
-        { dir: "Replacement", usecase: "New birth", spending: 66.15, roas: 0.00 },
-        { dir: "Replacement", usecase: "Parent Gifting", spending: 1648.65, roas: 1.83 },
-        { dir: "Replacement", usecase: "Kids", spending: 277.40, roas: 1.01 },
-        { dir: "Replacement", usecase: "Dorm", spending: 7518.38, roas: 1.34 }
+        { dir: "Brand service", usecase: "Unboxing", spending: 171.96, roas: 0.00, isNew: false },
+        { dir: "Brand service", usecase: "Logistics", spending: 2274.93, roas: 2.00, isNew: true },
+        { dir: "Problem Solving", usecase: "Pets", spending: 235.68, roas: 0.00, isNew: false },
+        { dir: "Problem Solving", usecase: "Storage", spending: 337.44, roas: 1.18, isNew: true },
+        { dir: "Problem Solving", usecase: "Elecronic fee", spending: 110.72, roas: 0.00, isNew: false },
+        { dir: "Problem Solving", usecase: "Respiratory", spending: 16.39, roas: 203.49, isNew: false },
+        { dir: "Problem Solving", usecase: "Skincare", spending: 101.83, roas: 0.00, isNew: true },
+        { dir: "Problem Solving", usecase: "Sleeping quality", spending: 222.51, roas: 1.22, isNew: false },
+        { dir: "Problem Solving", usecase: "Weight", spending: 1041.72, roas: 1.97, isNew: false },
+        { dir: "Problem Solving", usecase: "Lower back pain", spending: 786.86, roas: 0.77, isNew: false },
+        { dir: "Problem Solving", usecase: "Smell", spending: 669.46, roas: 2.78, isNew: false },
+        { dir: "Problem Solving", usecase: "Sports recover", spending: 143.25, roas: 12.87, isNew: false },
+        { dir: "Problem Solving", usecase: "Noise", spending: 180.63, roas: 0.00, isNew: false },
+        { dir: "New purchase", usecase: "How to choose", spending: 906.55, roas: 5.40, isNew: false },
+        { dir: "New purchase", usecase: "Valentines", spending: 8.72, roas: 0.00, isNew: true },
+        { dir: "New purchase", usecase: "Parent Gifting", spending: 2750.20, roas: 4.94, isNew: false },
+        { dir: "New purchase", usecase: "Kids", spending: 1683.77, roas: 2.00, isNew: false },
+        { dir: "New purchase", usecase: "CNY Gifting", spending: 959.23, roas: 5.63, isNew: true },
+        { dir: "Discount", usecase: "How to choose", spending: 2006.89, roas: 5.51, isNew: false },
+        { dir: "Discount", usecase: "Discount", spending: 31966.07, roas: 3.43, isNew: false },
+        { dir: "Replacement", usecase: "Pregnant", spending: 529.83, roas: 5.44, isNew: false },
+        { dir: "Replacement", usecase: "Marriage", spending: 589.73, roas: 0.52, isNew: false },
+        { dir: "Replacement", usecase: "Old mattress", spending: 1392.70, roas: 4.91, isNew: false },
+        { dir: "Replacement", usecase: "New birth", spending: 66.15, roas: 0.00, isNew: false },
+        { dir: "Replacement", usecase: "Parent Gifting", spending: 1648.65, roas: 1.83, isNew: false },
+        { dir: "Replacement", usecase: "Kids", spending: 277.40, roas: 1.01, isNew: false },
+        { dir: "Replacement", usecase: "Dorm", spending: 7518.38, roas: 1.34, isNew: false }
     ];
 
-    // Manual Text Position Map
+    // Aggressive Position Map to fix clustering
     const textPosMap = {
-        "Valentines": "bottom left",
-        "New birth": "bottom center",
-        "Skincare": "top center",
-        "Elecronic fee": "top left",
-        "Unboxing": "top right",
-        "Noise": "middle right",
-        "Pets": "bottom right",
-        "Sleeping quality": "top center",
-        "Storage": "bottom center",
-        "Marriage": "bottom center",
+        // --- The Dense Cluster Fix ---
+        "Valentines": "top right",      // 8.72  - Push right to use empty space
+        "Respiratory": "top center",    // 16.39 - High up, safe
+        "New birth": "bottom center",   // 66.15 - Straight Down
+        "Skincare": "top left",         // 101   - UP and LEFT
+        "Elecronic fee": "bottom right",// 110   - DOWN and RIGHT (Diagonal separation from Skincare)
+        "Sports recover": "top center", // 143   - High up, safe
+        "Unboxing": "top left",         // 171   - UP and LEFT
+        "Noise": "bottom right",        // 180   - DOWN and RIGHT (Diagonal separation from Unboxing)
+        "Pets": "middle right",         // 235   - Push further right
+        
+        // --- Others ---
+        "Sleeping quality": "top left", // 222   - Move away from Pets/Storage
+        "Kids": "middle right",
+        "Storage": "top center",
         "Pregnant": "top left",
-        "Smell": "bottom center",
+        "Marriage": "bottom center",
+        "Smell": "top center",
         "Lower back pain": "bottom center",
-        "Sports recover": "top center", // Key matches data
         "How to choose": "top center",
-        "CNY Gifting": "top right",
-        "Weight": "bottom left",
+        "CNY Gifting": "bottom right",
+        "Weight": "top right",
         "Old mattress": "top center",
         "Logistics": "top center",
+        "Discount": "top center",
         "Parent Gifting": "top center",
-        "Dorm": "bottom center",
-        "Discount": "top center"
+        "Dorm": "bottom center"
     };
 
     function getSmartPosition(d) {
         if (d.usecase === "Kids") {
              if (d.spending > 1000) return "top center"; 
-             return "bottom left"; 
+             return "bottom right"; 
         }
         if (d.usecase === "Parent Gifting") {
-             if (d.spending > 2000) return "top center"; 
+             if (d.spending > 2000) return "top left"; 
              return "bottom right"; 
         }
         if (d.usecase === "How to choose") {
@@ -182,12 +216,10 @@
     const spendingOutlierThreshold = 10000; 
 
     const normalSpendingData = rawData.filter(d => d.spending < spendingOutlierThreshold);
-    const totalSpending = normalSpendingData.reduce((sum, item) => sum + item.spending, 0);
-    const avgSpending = totalSpending / normalSpendingData.length;
+    const avgSpending = normalSpendingData.reduce((sum, item) => sum + item.spending, 0) / normalSpendingData.length;
 
     const normalRoasData = rawData.filter(d => d.roas < roasOutlierThreshold);
-    const totalROAS = normalRoasData.reduce((sum, item) => sum + item.roas, 0);
-    const avgROAS = totalROAS / normalRoasData.length;
+    const avgROAS = normalRoasData.reduce((sum, item) => sum + item.roas, 0) / normalRoasData.length;
 
     const directions = [...new Set(rawData.map(item => item.dir))];
     
@@ -200,17 +232,20 @@
             mode: 'markers+text',
             type: 'scatter',
             name: dir,
-            text: filteredData.map(d => d.usecase),
+            text: filteredData.map(d => d.usecase + (d.isNew ? " <b>(New)</b>" : "")),
             textposition: filteredData.map(d => getSmartPosition(d)),
             textfont: {
                 size: 13, 
                 family: 'Arial, sans-serif',
-                weight: 600
+                weight: 600,
+                color: '#333',
+                // Add background to labels to make them readable when overlapping
+                bgcolor: 'rgba(255, 255, 255, 0.7)' 
             },
             marker: { 
-                size: 16, 
+                size: 18, 
                 opacity: 0.85, 
-                line: { width: 1.5, color: 'white' } 
+                line: { width: 2, color: 'white' } 
             },
             hovertemplate: 
                 `<b>Direction:</b> ${dir}<br>` +
@@ -221,120 +256,124 @@
     });
 
     const layout = {
-        font: { size: 14 }, 
+        font: { family: 'Arial, sans-serif', size: 14 },
         hovermode: 'closest',
         xaxis: {
             title: { text: 'Spending (€)', font: { size: 18, weight: 'bold' } },
+            type: 'log', 
             zeroline: false,
-            gridcolor: '#e6e6e6',
-            range: [-50, 3000], 
+            gridcolor: '#e0e0e0',
+            // Widened start to 0.5 (~3.16) to give space for "Valentines"
+            range: [0.5, 4.6], 
             tickfont: { size: 14 } 
         },
         yaxis: {
             title: { text: 'ROAS', font: { size: 18, weight: 'bold' } },
             zeroline: false,
-            gridcolor: '#e6e6e6',
-            range: [-0.5, 6.5],
+            gridcolor: '#e0e0e0',
+            range: [-1, 15], 
             tickfont: { size: 14 } 
         },
         shapes: [
-            // Spending Avg Line
             {
                 type: 'line',
                 x0: avgSpending, y0: -10, x1: avgSpending, y1: 220,
-                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
+                line: { color: 'rgba(52, 73, 94, 0.4)', width: 2, dash: 'dot' } 
             },
-            // ROAS Avg Line
             {
                 type: 'line',
-                x0: 0, y0: avgROAS, x1: 40000, y1: avgROAS,
-                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
+                x0: 0, y0: avgROAS, x1: 50000, y1: avgROAS,
+                line: { color: 'rgba(52, 73, 94, 0.4)', width: 2, dash: 'dot' } 
             }
         ],
         annotations: [
-            { x: 0.95, y: 0.95, xref: 'paper', yref: 'paper', text: '<b>High Spend<br>High ROAS</b>', showarrow: false, font: { color: 'green', size: 14 }, xanchor: 'right' },
-            { x: 0.05, y: 0.95, xref: 'paper', yref: 'paper', text: '<b>Low Spend<br>High ROAS</b>', showarrow: false, font: { color: 'orange', size: 14 }, xanchor: 'left' },
-            { x: 0.95, y: 0.05, xref: 'paper', yref: 'paper', text: '<b>High Spend<br>Low ROAS</b>', showarrow: false, font: { color: 'blue', size: 14 }, xanchor: 'right' },
+            { x: Math.log10(25000), y: 14, xref: 'x', yref: 'y', text: '<b>Q1: High Spend<br>High ROAS</b>', showarrow: false, font: { color: '#27ae60', size: 15 }, xanchor: 'right' },
+            { x: Math.log10(10), y: 14, xref: 'x', yref: 'y', text: '<b>Q2: Low Spend<br>High ROAS</b>', showarrow: false, font: { color: '#f39c12', size: 15 }, xanchor: 'left' },
+            { x: Math.log10(25000), y: 0, xref: 'x', yref: 'y', text: '<b>Q4: High Spend<br>Low ROAS</b>', showarrow: false, font: { color: '#c0392b', size: 15 }, xanchor: 'right' },
             
-            { x: avgSpending, y: 0.02, xref: 'x', yref: 'paper', text: `Avg Spend: €${avgSpending.toFixed(0)}`, showarrow: false, font: { size: 12, color: 'gray', weight: 'bold' }, yanchor: 'bottom' },
-            { x: 0.98, y: avgROAS + 0.1, xref: 'paper', yref: 'y', text: `Avg ROAS: ${avgROAS.toFixed(2)}`, showarrow: false, font: { size: 12, color: 'gray', weight: 'bold' }, xanchor: 'right' }
+            { x: Math.log10(avgSpending), y: 0.2, xref: 'x', yref: 'paper', text: `Avg Spend: €${avgSpending.toFixed(0)}`, showarrow: false, font: { size: 12, color: '#7f8c8d', weight: 'bold' }, yanchor: 'bottom' },
+            { x: 0.99, y: avgROAS + 0.2, xref: 'paper', yref: 'y', text: `Avg ROAS: ${avgROAS.toFixed(2)}`, showarrow: false, font: { size: 12, color: '#7f8c8d', weight: 'bold' }, xanchor: 'right' }
         ],
         legend: { 
             orientation: 'h', 
-            y: -0.1,
-            font: { size: 18 } // Increased legend font size
+            y: -0.2, 
+            x: 0.5,
+            xanchor: 'center',
+            font: { size: 16 }, 
+            entrywidth: 170, 
+            entrywidthmode: 'pixels',
+            traceorder: 'normal'
         },
-        margin: { t: 60, l: 70, r: 50, b: 100 }
+        margin: { t: 60, l: 80, r: 60, b: 160 } 
     };
 
     Plotly.newPlot('myDiv', traces, layout);
 
-    function setLinearScale() {
-        const update = {
-            'xaxis.type': 'linear',
-            'xaxis.range': [-50, 3000], 
-            'yaxis.range': [-0.5, 6.5], 
-            'xaxis.title.text': 'Spending (€) - Linear'
-        };
-        
-        const shapes = [
-             {
-                type: 'line',
-                x0: avgSpending, y0: -10, x1: avgSpending, y1: 220,
-                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
-            },
-            {
-                type: 'line',
-                x0: -1000, y0: avgROAS, x1: 40000, y1: avgROAS,
-                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
+    function setView(viewType) {
+        document.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+        let update = {};
+        let desc = "";
+
+        if (viewType === 'overall') {
+            document.getElementById('btnOverall').classList.add('active');
+            
+            update = {
+                'xaxis.type': 'log',
+                'yaxis.type': 'linear',
+                // Keep the widened range
+                'xaxis.range': [0.5, 4.6], 
+                'yaxis.range': [-1, 15], 
+                'xaxis.title.text': 'Spending (€) - Log Scale',
+                'annotations': [
+                    { x: Math.log10(25000), y: 14, xref: 'x', yref: 'y', text: '<b>Q1: High Spend<br>High ROAS</b>', showarrow: false, font: { color: '#27ae60', size: 15 }, xanchor: 'right' },
+                    { x: Math.log10(10), y: 14, xref: 'x', yref: 'y', text: '<b>Q2: Low Spend<br>High ROAS</b>', showarrow: false, font: { color: '#f39c12', size: 15 }, xanchor: 'left' },
+                    { x: Math.log10(25000), y: 0, xref: 'x', yref: 'y', text: '<b>Q4: High Spend<br>Low ROAS</b>', showarrow: false, font: { color: '#c0392b', size: 15 }, xanchor: 'right' },
+                    { x: Math.log10(10), y: 0, xref: 'x', yref: 'y', text: '<b>Q3: Low Spend<br>Low ROAS</b>', showarrow: false, font: { color: '#7f8c8d', size: 15 }, xanchor: 'left' },
+                    { x: Math.log10(avgSpending), y: 0.02, xref: 'x', yref: 'paper', text: `Avg Spend: €${avgSpending.toFixed(0)}`, showarrow: false, font: { size: 12, color: '#7f8c8d', weight: 'bold' }, yanchor: 'bottom' },
+                    { x: 0.99, y: avgROAS + 0.02, xref: 'paper', yref: 'y', text: `Avg ROAS: ${avgROAS.toFixed(2)}`, showarrow: false, font: { size: 12, color: '#7f8c8d', weight: 'bold' }, xanchor: 'right' }
+                ]
+            };
+            desc = "<b>Overall View</b>: Using Logarithmic scale for Spending to separate crowded data points.";
+
+        } else {
+            const btnId = 'btn' + viewType.toUpperCase();
+            const btn = document.getElementById(btnId);
+            if(btn) btn.classList.add('active');
+
+            update = { 
+                'xaxis.type': 'linear', 
+                'yaxis.type': 'linear', 
+                'xaxis.title.text': 'Spending (€)',
+                'annotations': [] 
+            };
+
+            if (viewType === 'q1') {
+                update['xaxis.range'] = [avgSpending, 4000]; 
+                update['yaxis.range'] = [avgROAS, 7];
+                desc = "<b>Q1 (Star Performers)</b>: High Spend & High ROAS.";
+            } else if (viewType === 'q2') {
+                update['xaxis.range'] = [-20, avgSpending];
+                update['yaxis.range'] = [avgROAS, 7];
+                desc = "<b>Q2 (Potential/Niche)</b>: Low Spend & High ROAS.";
+            } else if (viewType === 'q3') {
+                update['xaxis.range'] = [-20, avgSpending];
+                update['yaxis.range'] = [-0.5, avgROAS];
+                desc = "<b>Q3 (To Optimize)</b>: Low Spend & Low ROAS.";
+            } else if (viewType === 'q4') {
+                update['xaxis.range'] = [avgSpending, 4000];
+                update['yaxis.range'] = [-0.5, avgROAS];
+                desc = "<b>Q4 (Alert Zone)</b>: High Spend & Low ROAS.";
             }
-        ];
-        update.shapes = shapes;
-
+        }
+        
         Plotly.relayout('myDiv', update);
-        
-        document.getElementById('descText').innerText = "Dense Data Zone: Zoomed in on the high-density area with lower spend and ROAS.";
-        updateButtons('btnLinear');
-    }
-
-    function setLogScale() {
-        const update = {
-            'xaxis.type': 'log',
-            'xaxis.range': [0.5, 4.6], 
-            'yaxis.range': [-1, 15], 
-            'xaxis.title.text': 'Spending (€) - Log Scale'
-        };
-        
-        const safeShapes = [
-             {
-                type: 'line',
-                x0: avgSpending, y0: -10, x1: avgSpending, y1: 220,
-                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
-            },
-            {
-                type: 'line',
-                x0: 0, y0: avgROAS, x1: 40000, y1: avgROAS, 
-                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
-            }
-        ];
-        update.shapes = safeShapes;
-
-        Plotly.relayout('myDiv', update);
-        
-        document.getElementById('descText').innerText = "Overall performance: Logarithmic scale showing all data points including outliers.";
-        updateButtons('btnLog');
+        document.getElementById('descText').innerHTML = `<b>Current View:</b><br>${desc}`;
     }
 
     function toggleLabels() {
         const isChecked = document.getElementById('toggleLabels').checked;
         const mode = isChecked ? 'markers+text' : 'markers';
         Plotly.restyle('myDiv', { mode: mode });
-    }
-
-    function updateButtons(activeId) {
-        document.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-        const btn = document.getElementById(activeId);
-        if(btn) btn.classList.add('active');
     }
 </script>
 
