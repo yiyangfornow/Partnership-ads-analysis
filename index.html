@@ -118,9 +118,9 @@
         { dir: "Discount", usecase: "Discount", spending: 31966.07, roas: 3.43 },
         { dir: "Replacement", usecase: "Pregnant", spending: 529.83, roas: 5.44 },
         { dir: "Replacement", usecase: "Marriage", spending: 589.73, roas: 0.52 },
-        { dir: "Replacement", usecase: "Old mattress replacement", spending: 1392.70, roas: 4.91 },
-        { dir: "Replacement", usecase: "New birth", spending: 66.15, roas: 0.00 },
-        { dir: "Replacement", usecase: "Parent Gifting", spending: 1648.65, roas: 1.83 },
+        { dir: "Replacement", usecase: "Old Mattress Replacement", spending: 1392.70, roas: 4.91 },
+        { dir: "Replacement", usecase: "New Birth", spending: 66.15, roas: 0.00 },
+        { dir: "Replacement", usecase: "Parents Gifting", spending: 1648.65, roas: 1.83 },
         { dir: "Replacement", usecase: "Kids", spending: 277.40, roas: 1.01 },
         { dir: "Replacement", usecase: "Rental & Dorms", spending: 7518.38, roas: 1.34 }
     ];
@@ -140,13 +140,13 @@
         "Pregnant": "top left",
         "Smell": "bottom center",
         "Lower back pain": "bottom center",
-        "Sports Revor": "top center",
+        "Sports Recovor": "top center",
         "How to choose": "top center",
         "CNY Gifting": "top right",
         "Weight": "bottom left",
         "Old mattress replacement": "top center",
         "Logistics": "top center",
-        "Parent Gifting": "top center",
+        "Parents Gifting": "top center",
         "Rental & Dorms": "bottom center",
         "Discount": "top center"
     };
@@ -156,7 +156,7 @@
              if (d.spending > 1000) return "top center"; 
              return "bottom left"; 
         }
-        if (d.usecase === "Parent Gifting") {
+        if (d.usecase === "Parents Gifting") {
              if (d.spending > 2000) return "top center"; 
              return "bottom right"; 
         }
@@ -266,7 +266,7 @@
             'xaxis.type': 'linear',
             'xaxis.range': [-50, 3000], // Tight zoom on core data
             'yaxis.range': [-0.5, 6.5],  // Hide vertical outlier
-            'xaxis.title.text': 'Spending ($) - Linear'
+            'xaxis.title.text': 'Spending (€) - Linear'
         };
         
         // Update Avg Lines shapes for Linear
@@ -333,7 +333,7 @@
 
         Plotly.relayout('myDiv', update);
         
-        document.getElementById('descText').innerText = "全覽模式 (Log Scale)：使用對數座標呈現所有數據點，包含極端值 (如 Discount $31k)，讓所有點都能清楚分開。";
+        document.getElementById('descText').innerText = "全覽模式 (Log Scale)：使用對數座標呈現所有數據點，包含極端值 (如 Discount €31k)，讓所有點都能清楚分開。";
         updateButtons('btnLog');
     }
 
