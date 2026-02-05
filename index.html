@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Partnership Ads Performance Matrix</title>
+    <title>Partnership Ads Use Cases Performance Matrix</title>
     <!-- Import Plotly.js -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
@@ -24,8 +24,16 @@
         h2 {
             text-align: center;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             font-size: 28px;
+            font-weight: bold;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 20px;
+            font-weight: 500;
         }
         .controls {
             display: flex;
@@ -44,6 +52,7 @@
             cursor: pointer;
             background: white;
             font-size: 16px;
+            font-weight: 500;
             transition: all 0.2s;
         }
         button:hover {
@@ -78,36 +87,37 @@
 <body>
 
 <div class="container">
-    <h2>Partnership Ads 素材表現矩陣 (Spending vs ROAS)</h2>
+    <h2>Partnership ads Use Cases Performance Matrix</h2>
+    <div class="subtitle">Time frame: 2025/12/1 - 2026/01/31</div>
     
     <div class="controls">
-        <button onclick="setLinearScale()" id="btnLinear" class="active">聚焦核心區 (Linear)</button>
-        <button onclick="setLogScale()" id="btnLog">全覽分佈 (Log Scale)</button>
+        <button onclick="setLinearScale()" id="btnLinear" class="active">Dense Data Zone</button>
+        <button onclick="setLogScale()" id="btnLog">Overall performance</button>
         <label>
             <input type="checkbox" id="toggleLabels" checked onchange="toggleLabels()"> 
-            顯示文字標籤
+            Show Labels
         </label>
     </div>
 
-    <p class="note" id="descText">核心區模式：已隱藏極端高花費/高ROAS項目，以消除版面空白並放大密集區。</p>
+    <p class="note" id="descText">Dense Data Zone: Zoomed in on the high-density area with lower spend and ROAS.</p>
     <div id="myDiv"></div>
 </div>
 
 <script>
-    // Raw Data
+    // Raw Data (Updated: Sports Revor -> Sports recover)
     const rawData = [
         { dir: "Brand service", usecase: "Unboxing", spending: 171.96, roas: 0.00 },
         { dir: "Brand service", usecase: "Logistics", spending: 2274.93, roas: 2.00 },
         { dir: "Problem Solving", usecase: "Pets", spending: 235.68, roas: 0.00 },
         { dir: "Problem Solving", usecase: "Storage", spending: 337.44, roas: 1.18 },
-        { dir: "Problem Solving", usecase: "Electronic fee", spending: 110.72, roas: 0.00 },
-        { dir: "Problem Solving", usecase: "Respiratory", spending: 16.39, roas: 203.49 },
+        { dir: "Problem Solving", usecase: "Elecronic fee", spending: 110.72, roas: 0.00 },
+        { dir: "Problem Solving", usecase: "respiratory", spending: 16.39, roas: 203.49 },
         { dir: "Problem Solving", usecase: "Skincare", spending: 101.83, roas: 0.00 },
-        { dir: "Problem Solving", usecase: "Sleeping Quality", spending: 222.51, roas: 1.22 },
+        { dir: "Problem Solving", usecase: "Sleeping quality", spending: 222.51, roas: 1.22 },
         { dir: "Problem Solving", usecase: "Weight", spending: 1041.72, roas: 1.97 },
         { dir: "Problem Solving", usecase: "Lower back pain", spending: 786.86, roas: 0.77 },
         { dir: "Problem Solving", usecase: "Smell", spending: 669.46, roas: 2.78 },
-        { dir: "Problem Solving", usecase: "Sports Recovor", spending: 143.25, roas: 12.87 },
+        { dir: "Problem Solving", usecase: "Sports recover", spending: 143.25, roas: 12.87 }, // Renamed
         { dir: "Problem Solving", usecase: "Noise", spending: 180.63, roas: 0.00 },
         { dir: "New purchase", usecase: "How to choose", spending: 906.55, roas: 5.40 },
         { dir: "New purchase", usecase: "Valentines", spending: 8.72, roas: 0.00 },
@@ -118,11 +128,11 @@
         { dir: "Discount", usecase: "Discount", spending: 31966.07, roas: 3.43 },
         { dir: "Replacement", usecase: "Pregnant", spending: 529.83, roas: 5.44 },
         { dir: "Replacement", usecase: "Marriage", spending: 589.73, roas: 0.52 },
-        { dir: "Replacement", usecase: "Old Mattress Replacement", spending: 1392.70, roas: 4.91 },
-        { dir: "Replacement", usecase: "New Birth", spending: 66.15, roas: 0.00 },
-        { dir: "Replacement", usecase: "Parents Gifting", spending: 1648.65, roas: 1.83 },
+        { dir: "Replacement", usecase: "Old mattress", spending: 1392.70, roas: 4.91 },
+        { dir: "Replacement", usecase: "New birth", spending: 66.15, roas: 0.00 },
+        { dir: "Replacement", usecase: "Parent Gifting", spending: 1648.65, roas: 1.83 },
         { dir: "Replacement", usecase: "Kids", spending: 277.40, roas: 1.01 },
-        { dir: "Replacement", usecase: "Rental & Dorms", spending: 7518.38, roas: 1.34 }
+        { dir: "Replacement", usecase: "Dorm", spending: 7518.38, roas: 1.34 }
     ];
 
     // Manual Text Position Map
@@ -130,7 +140,7 @@
         "Valentines": "bottom left",
         "New birth": "bottom center",
         "Skincare": "top center",
-        "Electronic fee": "top left",
+        "Elecronic fee": "top left",
         "Unboxing": "top right",
         "Noise": "middle right",
         "Pets": "bottom right",
@@ -140,14 +150,14 @@
         "Pregnant": "top left",
         "Smell": "bottom center",
         "Lower back pain": "bottom center",
-        "Sports Recovor": "top center",
+        "Sports recover": "top center", // Updated key
         "How to choose": "top center",
         "CNY Gifting": "top right",
         "Weight": "bottom left",
-        "Old mattress replacement": "top center",
+        "Old mattress": "top center",
         "Logistics": "top center",
-        "Parents Gifting": "top center",
-        "Rental & Dorms": "bottom center",
+        "Parent Gifting": "top center",
+        "Dorm": "bottom center",
         "Discount": "top center"
     };
 
@@ -156,7 +166,7 @@
              if (d.spending > 1000) return "top center"; 
              return "bottom left"; 
         }
-        if (d.usecase === "Parents Gifting") {
+        if (d.usecase === "Parent Gifting") {
              if (d.spending > 2000) return "top center"; 
              return "bottom right"; 
         }
@@ -205,7 +215,7 @@
             hovertemplate: 
                 `<b>Direction:</b> ${dir}<br>` +
                 `<b>Use Case:</b> %{text}<br>` +
-                `<b>Spending:</b> $%{x:,.2f}<br>` +
+                `<b>Spending:</b> €%{x:,.2f}<br>` +
                 `<b>ROAS:</b> %{y:.2f}<extra></extra>`
         };
     });
@@ -217,7 +227,6 @@
             title: { text: 'Spending (€)', font: { size: 18, weight: 'bold' } },
             zeroline: false,
             gridcolor: '#e6e6e6',
-            // Default range focuses on the "core" to avoid whitespace
             range: [-50, 3000], 
             tickfont: { size: 14 } 
         },
@@ -225,7 +234,6 @@
             title: { text: 'ROAS', font: { size: 18, weight: 'bold' } },
             zeroline: false,
             gridcolor: '#e6e6e6',
-            // Default range focuses on ROAS < 6.5 to hide the outlier at 12.87
             range: [-0.5, 6.5],
             tickfont: { size: 14 } 
         },
@@ -248,13 +256,13 @@
             { x: 0.05, y: 0.95, xref: 'paper', yref: 'paper', text: '<b>Low Spend<br>High ROAS</b>', showarrow: false, font: { color: 'orange', size: 14 }, xanchor: 'left' },
             { x: 0.95, y: 0.05, xref: 'paper', yref: 'paper', text: '<b>High Spend<br>Low ROAS</b>', showarrow: false, font: { color: 'blue', size: 14 }, xanchor: 'right' },
             
-            { x: avgSpending, y: 0.02, xref: 'x', yref: 'paper', text: `Avg Spend: $${avgSpending.toFixed(0)}`, showarrow: false, font: { size: 12, color: 'gray', weight: 'bold' }, yanchor: 'bottom' },
+            { x: avgSpending, y: 0.02, xref: 'x', yref: 'paper', text: `Avg Spend: €${avgSpending.toFixed(0)}`, showarrow: false, font: { size: 12, color: 'gray', weight: 'bold' }, yanchor: 'bottom' },
             { x: 0.98, y: avgROAS + 0.1, xref: 'paper', yref: 'y', text: `Avg ROAS: ${avgROAS.toFixed(2)}`, showarrow: false, font: { size: 12, color: 'gray', weight: 'bold' }, xanchor: 'right' }
         ],
         legend: { 
             orientation: 'h', 
             y: -0.1,
-            font: { size: 14 } 
+            font: { size: 18 } // Increased legend font size
         },
         margin: { t: 60, l: 70, r: 50, b: 100 }
     };
@@ -264,12 +272,11 @@
     function setLinearScale() {
         const update = {
             'xaxis.type': 'linear',
-            'xaxis.range': [-50, 3000], // Tight zoom on core data
-            'yaxis.range': [-0.5, 6.5],  // Hide vertical outlier
+            'xaxis.range': [-50, 3000], 
+            'yaxis.range': [-0.5, 6.5], 
             'xaxis.title.text': 'Spending (€) - Linear'
         };
         
-        // Update Avg Lines shapes for Linear
         const shapes = [
              {
                 type: 'line',
@@ -286,38 +293,19 @@
 
         Plotly.relayout('myDiv', update);
         
-        document.getElementById('descText').innerText = "核心區模式：已隱藏極端高花費/高ROAS項目，以消除版面空白並放大密集區。";
+        document.getElementById('descText').innerText = "Dense Data Zone: Zoomed in on the high-density area with lower spend and ROAS.";
         updateButtons('btnLinear');
     }
 
     function setLogScale() {
         const update = {
             'xaxis.type': 'log',
-            'xaxis.range': [0.5, 4.6], // Log10 range: 10^0.5 (~3) to 10^4.6 (~40k)
-            'yaxis.range': [-1, 15],   // Show full ROAS range
-            'xaxis.title.text': 'Spending ($) - Log Scale'
+            'xaxis.range': [0.5, 4.6], 
+            'yaxis.range': [-1, 15], 
+            'xaxis.title.text': 'Spending (€) - Log Scale'
         };
         
-        // Update Avg Lines shapes for Log
-        const shapes = [
-             {
-                type: 'line',
-                x0: Math.log10(avgSpending), y0: -10, x1: Math.log10(avgSpending), y1: 220,
-                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' },
-                xref: 'x' // Ensure it maps correctly in Plotly logic (Plotly handles log lines automatically usually, but explicitly setting range helps)
-            },
-            {
-                type: 'line',
-                x0: 0, y0: avgROAS, x1: 5, y1: avgROAS, // x in log domain
-                line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' },
-                xref: 'x' 
-            }
-        ];
-        
-        // Plotly handles shapes on log axes a bit differently, simple lines often easiest redrawn
-        // For simplicity, we keep the original values, Plotly usually adapts if type changes.
-        // But to be safe, we re-apply shapes using data coordinates
-         const safeShapes = [
+        const safeShapes = [
              {
                 type: 'line',
                 x0: avgSpending, y0: -10, x1: avgSpending, y1: 220,
@@ -325,7 +313,7 @@
             },
             {
                 type: 'line',
-                x0: 0, y0: avgROAS, x1: 40000, y1: avgROAS, // Cover full range
+                x0: 0, y0: avgROAS, x1: 40000, y1: avgROAS, 
                 line: { color: 'rgba(128,128,128,0.5)', width: 2, dash: 'dot' } 
             }
         ];
@@ -333,7 +321,7 @@
 
         Plotly.relayout('myDiv', update);
         
-        document.getElementById('descText').innerText = "全覽模式 (Log Scale)：使用對數座標呈現所有數據點，包含極端值 (如 Discount €31k)，讓所有點都能清楚分開。";
+        document.getElementById('descText').innerText = "Overall performance: Logarithmic scale showing all data points including outliers.";
         updateButtons('btnLog');
     }
 
