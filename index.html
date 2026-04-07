@@ -54,7 +54,7 @@
     <!-- TAB NAV -->
     <div class="tabs">
         <div class="tab active" onclick="switchTab('matrix')">📊 Spending × ROAS Matrix</div>
-        <div class="tab" onclick="switchTab('trend')">🔀 Q4→Q1 Trend</div>
+        <div class="tab" onclick="switchTab('trend')">🔀 Y25Q4 → Y26Q1 Trend</div>
         <div class="tab" onclick="switchTab('ctr')">🎯 CTR × ROAS Scatter</div>
         <div class="tab" onclick="switchTab('direction')">📈 Direction Overview</div>
     </div>
@@ -81,18 +81,24 @@
     <!-- TAB: TREND -->
     <div class="card" id="tabTrend" style="display:none">
         <p class="note">
-            <b>Q4 2025 → Q1 2026 Use Case Trajectory</b>
-            <span class="row"><span class="hl">Arrow</span> Shows movement from Q4 (hollow circle) to Q1 (solid circle) on the Spending × ROAS plane</span>
-            <span class="row"><span class="hl">↗ Upper-right</span> Scaling up with improving efficiency &nbsp;·&nbsp; <span class="hl">↘ Lower-left</span> Declining on both axes</span>
-            <span class="row"><span class="hl">→ Right + Down</span> Spending up but ROAS diluted (watch closely) &nbsp;·&nbsp; <span class="hl">← Left + Up</span> Budget cut but efficiency improved</span>
+            <b>Y25 Q4 → Y26 Q1 Use Case Trajectory</b>
+            <span class="row"><span class="hl">Arrow</span> Shows movement from Q4 (hollow ○) to Q1 (solid ●) on the Spending × ROAS plane</span>
+            <span class="row"><span class="hl">↗ Upper-right</span> Scaling up + efficiency improving &nbsp;·&nbsp; <span class="hl">↘ Lower-left</span> Declining on both axes</span>
+            <span class="row"><span class="hl">→ Right + Down</span> Budget up but ROAS diluted &nbsp;·&nbsp; <span class="hl">← Left + Up</span> Budget cut but efficiency improved</span>
         </p>
         <div class="controls">
-            <label class="chk"><input type="checkbox" id="trendLabels" checked onchange="drawTrend()"> Labels</label>
+            <button class="ctrl-btn active" onclick="setTrendDir('all')" id="trdAll">All Directions</button>
+            <button class="ctrl-btn" onclick="setTrendDir('Problem Solving')" id="trdPS">Problem Solving</button>
+            <button class="ctrl-btn" onclick="setTrendDir('Replacement')" id="trdRP">Replacement</button>
+            <button class="ctrl-btn" onclick="setTrendDir('New Purchase')" id="trdNP">New Purchase</button>
+            <button class="ctrl-btn" onclick="setTrendDir('Discount')" id="trdDC">Discount</button>
+            <button class="ctrl-btn" onclick="setTrendDir('Brand Service')" id="trdBS">Brand Service</button>
             <div class="sep"></div>
+            <label class="chk"><input type="checkbox" id="trendLabels" checked onchange="drawTrend()"> Labels</label>
             <label class="chk"><input type="checkbox" id="trendLog" checked onchange="drawTrend()"> Log Scale</label>
         </div>
         <div id="trendChart" class="chart-area"></div>
-        <div class="foot">24 matched use cases shown. Hollow ○ = Q4 2025 · Solid ● = Q1 2026. Hover for details. 3 Q4-only use cases dropped; 2 Q1-only use cases are new entries.</div>
+        <div class="foot">24 matched use cases. Hollow ○ = Y25 Q4 · Solid ● = Y26 Q1. Filter by direction to reduce clutter. Outlier ROAS values (Respiratory Q4: 203) are capped for readability.</div>
     </div>
 
     <!-- TAB 2: CTR vs ROAS -->
@@ -456,25 +462,43 @@ const q4Data = [
 ];
 
 // Cap Respiratory Q4 ROAS outlier for display
-const q4Display = q4Data.map(d => ({...d, roas: Math.min(d.roas, 15)}));
+const q4Display = q4Data.map(d => ({...d, roas: Math.min(d.roas, 9)}));
+
+let curTrendDir = 'all';
+function setTrendDir(dir) {
+    curTrendDir = dir;
+    document.querySelectorAll('#tabTrend .ctrl-btn').forEach(b => b.classList.remove('active'));
+    const idMap = {'all':'trdAll','Problem Solving':'trdPS','Replacement':'trdRP','New Purchase':'trdNP','Discount':'trdDC','Brand Service':'trdBS'};
+    document.getElementById(idMap[dir]).classList.add('active');
+    drawTrend();
+}
 
 function drawTrend() {
     const showLbl = document.getElementById('trendLabels').checked;
     const useLog = document.getElementById('trendLog').checked;
     const q4Map = {};
     q4Display.forEach(d => { q4Map[d.dir+'|'+d.usecase] = d; });
-    const q1Map = {};
-    rawData.forEach(d => { q1Map[d.dir+'|'+d.usecase] = d; });
 
-    // Find matched pairs
-    const pairs = [];
+    // Find matched pairs, apply direction filter
+    let pairs = [];
     rawData.forEach(q1 => {
         const key = q1.dir+'|'+q1.usecase;
         if (q4Map[key]) pairs.push({ q4: q4Map[key], q1, dir: q1.dir, usecase: q1.usecase });
     });
+    if (curTrendDir !== 'all') pairs = pairs.filter(p => p.dir === curTrendDir);
 
     const traces = [];
     const dirs = [...new Set(pairs.map(p => p.dir))];
+
+    // Smart label position based on arrow direction
+    function labelPos(p) {
+        const spUp = p.q1.spending > p.q4.spending;
+        const rUp = p.q1.roas > p.q4.roas;
+        if (spUp && rUp) return 'top right';
+        if (spUp && !rUp) return 'bottom right';
+        if (!spUp && rUp) return 'top left';
+        return 'bottom left';
+    }
 
     dirs.forEach(dir => {
         const dp = pairs.filter(p => p.dir === dir);
@@ -483,16 +507,16 @@ function drawTrend() {
         // Q4 points (hollow)
         traces.push({
             x: dp.map(p => p.q4.spending), y: dp.map(p => p.q4.roas),
-            mode: 'markers', type: 'scatter', name: dir + ' (Q4)',
+            mode: 'markers', type: 'scatter', name: dir,
             legendgroup: dir, showlegend: true,
-            marker: { size: 11, color: 'rgba(255,255,255,0.8)', line: { width: 2.5, color }, opacity: 0.7 },
-            hovertemplate: dp.map(p => `<b>${p.usecase}</b> — Q4 2025<br>Spend: €${p.q4.spending.toLocaleString()}<br>ROAS: ${p.q4.roas.toFixed(2)}<extra></extra>`)
+            marker: { size: 10, color: 'rgba(255,255,255,0.9)', line: { width: 2.5, color }, opacity: 0.8, symbol: 'circle-open' },
+            hovertemplate: dp.map(p => `<b>${p.usecase}</b> — Y25 Q4<br>Spend: €${p.q4.spending.toLocaleString()}<br>ROAS: ${p.q4.roas === 9 ? '203.49 (capped)' : p.q4.roas.toFixed(2)}<extra></extra>`)
         });
 
-        // Q1 points (solid)
+        // Q1 points (solid) with labels
         traces.push({
             x: dp.map(p => p.q1.spending), y: dp.map(p => p.q1.roas),
-            mode: showLbl ? 'markers+text' : 'markers', type: 'scatter', name: dir + ' (Q1)',
+            mode: showLbl ? 'markers+text' : 'markers', type: 'scatter', name: dir + ' Q1',
             legendgroup: dir, showlegend: false,
             text: dp.map(p => {
                 const dupes = ["Dorm","Parent Gifting","Kids","How to Choose"];
@@ -500,30 +524,31 @@ function drawTrend() {
                 if (dupes.includes(p.usecase)) l = (dirAbbr[p.dir]||p.dir) + ': ' + l;
                 return l;
             }),
-            textposition: dp.map(p => {
-                if (p.q1.spending > p.q4.spending) return 'middle right';
-                return 'middle left';
-            }),
-            textfont: { size: 10, family: 'DM Sans', color: '#374151' },
-            marker: { size: 12, color, opacity: 0.9, line: { width: 2, color: 'rgba(255,255,255,0.9)' } },
+            textposition: dp.map(p => labelPos(p)),
+            textfont: { size: 11, family: 'DM Sans', color: '#374151' },
+            marker: { size: 13, color, opacity: 0.9, line: { width: 2, color: 'rgba(255,255,255,0.9)' } },
             hovertemplate: dp.map(p => {
                 const spChg = ((p.q1.spending - p.q4.spending) / p.q4.spending * 100).toFixed(0);
                 const rChg = (p.q1.roas - p.q4.roas).toFixed(2);
-                return `<b>${p.usecase}</b> — Q1 2026<br>Spend: €${p.q1.spending.toLocaleString()} (${spChg>0?'+':''}${spChg}%)<br>ROAS: ${p.q1.roas.toFixed(2)} (${rChg>0?'+':''}${rChg})<extra></extra>`;
+                return `<b>${p.usecase}</b> — Y26 Q1<br>Spend: €${p.q1.spending.toLocaleString()} (${spChg>0?'+':''}${spChg}%)<br>ROAS: ${p.q1.roas.toFixed(2)} (${rChg>0?'+':''}${rChg})<extra></extra>`;
             })
         });
     });
 
-    // Arrow annotations
+    // Arrow annotations connecting Q4 → Q1
     const arrows = pairs.map(p => ({
         ax: useLog ? Math.log10(Math.max(p.q4.spending, 1)) : p.q4.spending,
         ay: p.q4.roas,
         x: useLog ? Math.log10(Math.max(p.q1.spending, 1)) : p.q1.spending,
         y: p.q1.roas,
         xref: 'x', yref: 'y', axref: 'x', ayref: 'y',
-        showarrow: true, arrowhead: 3, arrowsize: 1.2, arrowwidth: 1.5,
-        arrowcolor: 'rgba(100,116,139,0.35)',
+        showarrow: true, arrowhead: 3, arrowsize: 1.3, arrowwidth: 1.8,
+        arrowcolor: 'rgba(100,116,139,0.3)',
     }));
+
+    // Compute Y range: cap at 9 to avoid Respiratory/Sports Recovery outlier stretching
+    const allRoas = pairs.flatMap(p => [p.q4.roas, p.q1.roas]);
+    const yMax = Math.min(Math.max(...allRoas) + 1, 10);
 
     Plotly.newPlot('trendChart', traces, {
         font: plotFont, hovermode: 'closest', plot_bgcolor: plotBg, paper_bgcolor: '#fff',
@@ -535,11 +560,11 @@ function drawTrend() {
         },
         yaxis: {
             title: { text:'ROAS', font:{size:14,color:'#64748b'} },
-            range: [-0.5, 14], gridcolor: '#f1f5f9', tickfont: {size:11}
+            range: [-0.5, yMax], gridcolor: '#f1f5f9', tickfont: {size:11}
         },
         annotations: arrows,
-        legend: { orientation:'h', y:-0.16, x:0.5, xanchor:'center', font:{size:12}, bgcolor:'rgba(255,255,255,0.95)', bordercolor:'#e5e7eb', borderwidth:1 },
-        margin: { t:40, l:70, r:50, b:130 }
+        legend: { orientation:'h', y:-0.14, x:0.5, xanchor:'center', font:{size:13}, bgcolor:'rgba(255,255,255,0.95)', bordercolor:'#e5e7eb', borderwidth:1, tracegroupgap: 5 },
+        margin: { t:40, l:70, r:50, b:120 }
     }, {responsive:true});
 }
 
