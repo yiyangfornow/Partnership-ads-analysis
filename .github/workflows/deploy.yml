@@ -1,17 +1,21 @@
-name: 自動更新網站
+name: 自动更新网站
 on:
   push:
     branches: [ main ]
+
+# 通过环境变量，优先使用最新的 Node.js 版本
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: 拿出檔案
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # 当前最新稳定版
 
       - name: 發佈到 gh-pages 分支
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4  # 已为你更新到最新稳定版 v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./
